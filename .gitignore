@@ -1,8 +1,3 @@
-# Projet de référence du professeur (non soumis)
 java_prof/
-
-# Rapport de conformité interne (non soumis)
 RAPPORT_CONFORMITE.md
-
-# Sorties de build Maven (régénérables, non versionnées)
 target/
