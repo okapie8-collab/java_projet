@@ -1,10 +1,10 @@
 spring:
   application:
-    name: Bondoudou
+    name: Bondoudou Store
   datasource:
-    url: ${MIMO_DB_URL:jdbc:h2:mem:mimo;DB_CLOSE_DELAY=-1}
-    username: ${MIMO_DB_USER:sa}
-    password: ${MIMO_DB_PASSWORD:}
+    url: ${BONDOUDOU_DB_URL}
+    username: ${BONDOUDOU_DB_USER}
+    password: ${BONDOUDOU_DB_PASSWORD}
     driverClassName: org.h2.Driver
   jpa:
     open-in-view: false
