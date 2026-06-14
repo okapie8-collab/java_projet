@@ -25,4 +25,3 @@ spring:
 logging:
   level:
     edu.sorbonne: DEBUG
-
