@@ -2,7 +2,7 @@ package edu.sorbonne.mimo.bondoudou.service;
 
 
 import edu.sorbonne.mimo.bondoudou.entities.Plushie;
-import edu.sorbonne.mimo.bondoudou.entities.PlushieCategory;
+import edu.sorbonne.mimo.bondoudou.entities.AnimalCategory;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +14,7 @@ public interface PlushieService {
     Optional<Plushie> findById(Long id);
 
 
-    List<Plushie> findByCategory(PlushieCategory category);
+    List<Plushie> findByCategory(AnimalCategory category);
 
     void create(Plushie plushie);
 

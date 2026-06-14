@@ -1,7 +1,7 @@
 package edu.sorbonne.mimo.bondoudou.service.impl;
 
 import edu.sorbonne.mimo.bondoudou.entities.Plushie;
-import edu.sorbonne.mimo.bondoudou.entities.PlushieCategory;
+import edu.sorbonne.mimo.bondoudou.entities.AnimalCategory;
 import edu.sorbonne.mimo.bondoudou.entities.db.BrandEntity;
 import edu.sorbonne.mimo.bondoudou.entities.db.PlushieEntity;
 import edu.sorbonne.mimo.bondoudou.entities.db.DistributorEntity;
@@ -59,7 +59,7 @@ public class DbPlushieService implements PlushieService {
     }
 
     @Override
-    public List<Plushie> findByCategory(PlushieCategory category) {
+    public List<Plushie> findByCategory(AnimalCategory category) {
         return plushieRepository.findByPlushieCategory(category.name())
                 .stream()
                 .map(plushieEntity -> plushieEntity.toRecord())

@@ -116,3 +116,44 @@ Détail des fichiers déplacés :
 - ✅ **Compilation** : succès avec le nouveau package `edu.sorbonne.mimo.bondoudou` et l'artefact `bondoudou`.
 - ✅ **Tests** : `Tests run: 54, Failures: 1`. Les 53 tests verts incluent ceux qui dépendent du renommage `brandName` (`findAll_WithBrandName_FiltersByBrand`, `update_ExistingPlushie_Success`).
 - ⚠️ **1 échec préexistant, sans lien avec ces modifications** : `DbPlushieServiceTest.update_FactoryNotOperatedByDistributor_Throws` (faute de frappe `UsineTrebuzaux` / `UsineTrebuzeaux`, déjà documentée dans `RAPPORT_CONFORMITE.md` §5). Non corrigé ici car hors périmètre de cette tâche de nommage.
+
+---
+---
+
+# Deuxième passe — Enum de catégories (2026-06-14)
+
+## 6. `PlushieCategory` → `AnimalCategory` (catégorie = type de créature)
+
+| Champ | Valeur |
+|-------|--------|
+| **Fichier** | `PlushieCategory.java` → `AnimalCategory.java` (renommé via `git mv`) |
+| **Chemin** | `mimo-2026-java/src/main/java/edu/sorbonne/mimo/bondoudou/entities/` |
+| **Modification (ancien)** | `public enum PlushieCategory { Fiction, NonFiction, Poetry, Biography, History, SciFi, Science }` — 7 genres littéraires |
+| **Modification (nouveau)** | `public enum AnimalCategory { Bear, Rabbit, Cat, Dog, Fox, Wolf, Hedgehog, Squirrel, Raccoon, Deer, Sheep, Horse, Elephant, Lion, Tiger, Giraffe, Hippo, Monkey, Sloth, Panda, RedPanda, Koala, Penguin, Owl, Duck, Frog, Turtle, Dolphin, Whale, Shark, Octopus, Axolotl, Unicorn, Dragon, Dinosaur }` — 35 créatures de peluche |
+| **Raison** | Les valeurs étaient des genres de livres, dernier vestige du domaine du professeur. Une catégorie de peluche = un type de créature. Convention conservée en PascalCase (comme l'enum d'origine). |
+
+### Répercussions du renommage du *type* (les noms de champ/méthodes `plushieCategory` ne sont **pas** modifiés)
+
+| Fichier | Chemin | Ancien | Nouveau | Raison |
+|---------|--------|--------|---------|--------|
+| `Plushie.java` | `…/entities/` | `… PlushieCategory plushieCategory)` | `… AnimalCategory plushieCategory)` | Type du composant du record. |
+| `PlushieService.java` | `…/service/` | `import …PlushieCategory;` / `findByCategory(PlushieCategory category)` | `import …AnimalCategory;` / `findByCategory(AnimalCategory category)` | Type du paramètre de recherche. |
+| `DbPlushieService.java` | `…/service/impl/` | `import …PlushieCategory;` / `findByCategory(PlushieCategory category)` | `import …AnimalCategory;` / `findByCategory(AnimalCategory category)` | Idem (implémentation). |
+| `PlushieEntity.java` | `…/entities/db/` | `import …PlushieCategory;` / `PlushieCategory category;` / `PlushieCategory.valueOf(...)` | `…AnimalCategory…` | Type de la variable locale et de conversion dans `toRecord()`. |
+| `DbPlushieServiceTest.java` | `…/test/…/service/impl/` | `import …PlushieCategory;` / `PlushieCategory.Fiction` / `"Fiction"` | `import …AnimalCategory;` / `AnimalCategory.Bear` / `"Bear"` | Adapter les fixtures à une valeur d'enum valide (sinon `valueOf` échoue). |
+
+### Volontairement conservés (hors périmètre)
+
+- Noms dérivés de l'**attribut** `plushieCategory` (et non du type) : champ `plushieCategory`, méthodes `getPlushieCategory`/`setPlushieCategory` (entité), méthode dérivée Spring Data `findByPlushieCategory`, accesseur `plushieCategory()` du record. Renommables en `animalCategory` dans une passe ultérieure si souhaité.
+
+### ⚠️ Désynchronisation à traiter lors de la passe SQL
+
+`src/main/resources/data.sql` insère encore des catégories `'Fiction'`, `'Biography'`, `'SciFi'`, `'History'`, `'NonFiction'`, `'Science'`, qui ne sont **plus** des valeurs valides de `AnimalCategory`.
+
+- ✅ Tests unitaires : OK (ils utilisent des mocks et la valeur `Bear`).
+- ❌ Application réelle : `GET /plushies` (et toute lecture passant par `PlushieEntity.toRecord()`) lèvera `IllegalArgumentException("Invalid category for row: …")` → **HTTP 500**, tant que `data.sql` n'est pas mis à jour avec les nouvelles valeurs (`Bear`, `Rabbit`, …).
+- 👉 À corriger **en même temps** que la réécriture de `data.sql` / `schema.sql`.
+
+### Validation
+
+- ✅ Compilation OK. `Tests run: 54, Failures: 1` — le seul échec est le bug de frappe préexistant (`update_FactoryNotOperatedByDistributor_Throws`), sans lien avec ce changement. Les tests dépendant de la catégorie (`findByCategory_ReturnsMatchingPlushies`, `update_ExistingPlushie_Success`) passent.

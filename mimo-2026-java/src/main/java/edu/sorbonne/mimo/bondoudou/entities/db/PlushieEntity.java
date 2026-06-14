@@ -1,7 +1,7 @@
 package edu.sorbonne.mimo.bondoudou.entities.db;
 
 import edu.sorbonne.mimo.bondoudou.entities.Plushie;
-import edu.sorbonne.mimo.bondoudou.entities.PlushieCategory;
+import edu.sorbonne.mimo.bondoudou.entities.AnimalCategory;
 import jakarta.persistence.*;
 
 import java.util.Optional;
@@ -69,9 +69,9 @@ public class PlushieEntity {
      * Consider using a DTO or a JOIN FETCH query in the repository instead.
      */
     public Plushie toRecord() {
-        PlushieCategory category;
+        AnimalCategory category;
         try {
-            category = PlushieCategory.valueOf(plushieCategory);
+            category = AnimalCategory.valueOf(plushieCategory);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid category for row: " + this.id);
         }
