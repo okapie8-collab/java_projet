@@ -1,164 +1,193 @@
--- ════════════════════════════════════════════════════════
--- Clean existing data (order matters due to foreign keys)
--- ════════════════════════════════════════════════════════
-DELETE
-FROM plushies;
-DELETE
-FROM factories;
-DELETE
-FROM brands;
-DELETE
-FROM distributors;
+DELETE FROM plushies;
+DELETE FROM factories;
+DELETE FROM brands;
+DELETE FROM distributors;
 
--- ════════════════════════════════════════════════════════
--- Insert brands (ID auto‑generated)
--- ════════════════════════════════════════════════════════
-INSERT INTO brands (name, country, founded_year)
-VALUES ('J.K. Rowling', 'UK', 1997),
-       ('Laure Moulin', 'France', 1969),
-       ('Antoine de Saint-Exupéry', 'France', 1943),
-       ('George Orwell', 'UK', 1949),
-       ('Yuval Noah Harari', 'Israel', 2011),
-       ('Albert Camus', 'France', 1942),
-       ('Frank Herbert', 'USA', 1965),
-       ('Arthur Conan Doyle', 'UK', 1887),
-       ('James Clear', 'USA', 2018),
-       ('J.R.R. Tolkien', 'UK', 1954),
-       ('Marjane Satrapi', 'Iran', 2000),
-       ('Stephen Hawking', 'UK', 1988);
+INSERT INTO brands (name, country, founded_year) VALUES
+    ('Câlin & Compagnie', 'France', 1998),
+    ('Les Doux Rêveurs', 'France', 2005),
+    ('Peluche Bio', 'France', 2012),
+    ('Tendre Coton', 'France', 2015),
+    ('Nounours Nature', 'France', 2009),
+    ('La Fabrique à Câlins', 'France', 2003),
+    ('Mistoufle', 'France', 2018),
+    ('Coton & Tendresse', 'Belgique', 2010),
+    ('Petite Laine', 'France', 2014),
+    ('Doudou Vert', 'France', 2016),
+    ('Atelier du Câlin', 'Suisse', 2007),
+    ('Bichon & Bouille', 'France', 2019);
 
--- ════════════════════════════════════════════════════════
--- Insert distributors (ID auto‑generated)
--- ════════════════════════════════════════════════════════
-INSERT INTO distributors (name, country)
-VALUES ('Gallimard', 'France'),
-       ('Livre de Poche', 'France'),
-       ('Penguin', 'USA'),
-       ('Flammarion', 'France'),
-       ('HarperCollins', 'USA'),
-       ('Robert Laffont', 'France'),
-       ('Hachette', 'France'),
-       ('Random House', 'USA'),
-       ('Del Rey', 'USA'),
-       ('L''Iconoclaste', 'France');
+INSERT INTO distributors (name, country) VALUES
+    ('Au Royaume du Doudou', 'France'),
+    ('La Caverne aux Peluches', 'France'),
+    ('Doudouland', 'France'),
+    ('Câlinou Boutique', 'France'),
+    ('Le Comptoir des Peluches', 'France'),
+    ('Tendresse & Cie', 'France'),
+    ('Peluches de France', 'France'),
+    ('La Maison du Câlin', 'France'),
+    ('Doudous & Merveilles', 'France'),
+    ('Le Nid Douillet', 'France');
 
--- ════════════════════════════════════════════════════════
--- Insert factories (ID auto‑generated)
--- ════════════════════════════════════════════════════════
-INSERT INTO factories (name, country, number_of_employees, distributor_id)
-VALUES ('Sorbonne Plush Works', 'France', 120,
-        (SELECT id FROM distributors WHERE name = 'Gallimard')),
-       ('Tokyo Kawaii Factory', 'Japan', 340,
-        (SELECT id FROM distributors WHERE name = 'Penguin')),
-       ('Berlin Soft Toys', 'Germany', 85,
-        (SELECT id FROM distributors WHERE name = 'Flammarion')),
-       ('Shenzhen Cuddle Co', 'China', 1500,
-        (SELECT id FROM distributors WHERE name = 'Random House')),
-       ('Lyon Peluches Artisanales', 'France', 42,
-        (SELECT id FROM distributors WHERE name = 'Hachette'));
+INSERT INTO factories (name, country, number_of_employees, distributor_id) VALUES
+    ('Atelier Coton Doux', 'France', 80,
+        (SELECT id FROM distributors WHERE name = 'Au Royaume du Doudou')),
+    ('Manufacture du Câlin', 'France', 150,
+        (SELECT id FROM distributors WHERE name = 'La Caverne aux Peluches')),
+    ('Les Ateliers Verts', 'France', 60,
+        (SELECT id FROM distributors WHERE name = 'Doudouland')),
+    ('Fabrique Éthique du Doudou', 'France', 45,
+        (SELECT id FROM distributors WHERE name = 'Câlinou Boutique')),
+    ('Atelier Coton Recyclé', 'France', 70,
+        (SELECT id FROM distributors WHERE name = 'Le Comptoir des Peluches')),
+    ('La Filature Solidaire', 'France', 55,
+        (SELECT id FROM distributors WHERE name = 'Tendresse & Cie')),
+    ('Atelier Laine & Nature', 'Belgique', 40,
+        (SELECT id FROM distributors WHERE name = 'Peluches de France')),
+    ('Manufacture Douce de Wallonie', 'Belgique', 90,
+        (SELECT id FROM distributors WHERE name = 'La Maison du Câlin'));
 
--- ════════════════════════════════════════════════════════
--- Insert plushies – id auto‑generated, foreign keys resolved by name lookup
--- ════════════════════════════════════════════════════════
-INSERT INTO plushies (name, brand_id, distributor_id, factory_id, category)
-VALUES ('Harry Potter à l''école des sorciers',
-        (SELECT id FROM brands WHERE name = 'J.K. Rowling'),
-        (SELECT id FROM distributors WHERE name = 'Flammarion'),
-        (SELECT id FROM factories WHERE name = 'Sorbonne Plush Works'),
-        'Fiction'),
-
-       ('Jean Moulin : Biographie',
-        (SELECT id FROM brands WHERE name = 'Laure Moulin'),
-        (SELECT id FROM distributors WHERE name = 'Livre de Poche'),
-        (SELECT id FROM factories WHERE name = 'Tokyo Kawaii Factory'),
-        'Biography'),
-
-       ('Le Petit Prince',
-        (SELECT id FROM brands WHERE name = 'Antoine de Saint-Exupéry'),
-        (SELECT id FROM distributors WHERE name = 'Gallimard'),
-        (SELECT id FROM factories WHERE name = 'Berlin Soft Toys'),
-        'Fiction'),
-
-       ('1984',
-        (SELECT id FROM brands WHERE name = 'George Orwell'),
-        (SELECT id FROM distributors WHERE name = 'Penguin'),
-        (SELECT id FROM factories WHERE name = 'Shenzhen Cuddle Co'),
-        'Fiction'),
-
-       ('Sapiens : Une brève histoire de l''humanité',
-        (SELECT id FROM brands WHERE name = 'Yuval Noah Harari'),
-        (SELECT id FROM distributors WHERE name = 'Hachette'),
-        (SELECT id FROM factories WHERE name = 'Lyon Peluches Artisanales'),
-        'History'),
-
-       ('L''Étranger',
-        (SELECT id FROM brands WHERE name = 'Albert Camus'),
-        (SELECT id FROM distributors WHERE name = 'Flammarion'),
-        (SELECT id FROM factories WHERE name = 'Sorbonne Plush Works'),
-        'NonFiction'),
-
-       ('Dune',
-        (SELECT id FROM brands WHERE name = 'Frank Herbert'),
-        (SELECT id FROM distributors WHERE name = 'Robert Laffont'),
-        (SELECT id FROM factories WHERE name = 'Tokyo Kawaii Factory'),
-        'SciFi'),
-
-       ('Une étude en rouge',
-        (SELECT id FROM brands WHERE name = 'Arthur Conan Doyle'),
-        (SELECT id FROM distributors WHERE name = 'Livre de Poche'),
-        (SELECT id FROM factories WHERE name = 'Berlin Soft Toys'),
-        'Fiction'),
-
-       ('Atomic Habits',
-        (SELECT id FROM brands WHERE name = 'James Clear'),
-        (SELECT id FROM distributors WHERE name = 'Random House'),
-        (SELECT id FROM factories WHERE name = 'Shenzhen Cuddle Co'),
-        'NonFiction'),
-
-       ('Le Seigneur des Anneaux',
-        (SELECT id FROM brands WHERE name = 'J.R.R. Tolkien'),
-        (SELECT id FROM distributors WHERE name = 'Del Rey'),
-        (SELECT id FROM factories WHERE name = 'Lyon Peluches Artisanales'),
-        'Fiction'),
-
-       ('Persépolis',
-        (SELECT id FROM brands WHERE name = 'Marjane Satrapi'),
-        (SELECT id FROM distributors WHERE name = 'L''Iconoclaste'),
-        (SELECT id FROM factories WHERE name = 'Sorbonne Plush Works'),
-        'Fiction'),
-
-       ('Une brève histoire du temps',
-        (SELECT id FROM brands WHERE name = 'Stephen Hawking'),
-        (SELECT id FROM distributors WHERE name = 'Flammarion'),
-        (SELECT id FROM factories WHERE name = 'Tokyo Kawaii Factory'),
-        'Science');
-
--- Additional plushies to create multiple distributors per brand
 INSERT INTO plushies (name, brand_id, distributor_id, factory_id, category) VALUES
-       -- J.K. Rowling gets a second distributor (Gallimard)
-       ('Harry Potter et la Chambre des secrets',
-        (SELECT id FROM brands WHERE name = 'J.K. Rowling'),
-        (SELECT id FROM distributors WHERE name = 'Gallimard'),
-        (SELECT id FROM factories WHERE name = 'Berlin Soft Toys'),
-        'Fiction'),
+    ('Câlinours',
+        (SELECT id FROM brands WHERE name = 'Câlin & Compagnie'),
+        (SELECT id FROM distributors WHERE name = 'Au Royaume du Doudou'),
+        (SELECT id FROM factories WHERE name = 'Atelier Coton Doux'),
+        'Bear'),
 
-       -- Stephen Hawking gets Penguin as second distributor
-       ('The Universe in a Nutshell',
-        (SELECT id FROM brands WHERE name = 'Stephen Hawking'),
-        (SELECT id FROM distributors WHERE name = 'Penguin'),
-        (SELECT id FROM factories WHERE name = 'Shenzhen Cuddle Co'),
-        'Science'),
+    ('Lapinou Bisou',
+        (SELECT id FROM brands WHERE name = 'Câlin & Compagnie'),
+        (SELECT id FROM distributors WHERE name = 'Câlinou Boutique'),
+        (SELECT id FROM factories WHERE name = 'Fabrique Éthique du Doudou'),
+        'Rabbit'),
 
-       -- George Orwell gets HarperCollins (new distributor)
-       ('Homage to Catalonia',
-        (SELECT id FROM brands WHERE name = 'George Orwell'),
-        (SELECT id FROM distributors WHERE name = 'HarperCollins'),
-        (SELECT id FROM factories WHERE name = 'Lyon Peluches Artisanales'),
-        'NonFiction'),
+    ('Chatouille',
+        (SELECT id FROM brands WHERE name = 'Les Doux Rêveurs'),
+        (SELECT id FROM distributors WHERE name = 'La Caverne aux Peluches'),
+        (SELECT id FROM factories WHERE name = 'Manufacture du Câlin'),
+        'Cat'),
 
-       -- J.R.R. Tolkien gets HarperCollins (second distributor)
-       ('The Hobbit',
-        (SELECT id FROM brands WHERE name = 'J.R.R. Tolkien'),
-        (SELECT id FROM distributors WHERE name = 'HarperCollins'),
-        (SELECT id FROM factories WHERE name = 'Sorbonne Plush Works'),
-        'Fiction');
+    ('Renardoux',
+        (SELECT id FROM brands WHERE name = 'Les Doux Rêveurs'),
+        (SELECT id FROM distributors WHERE name = 'Doudouland'),
+        (SELECT id FROM factories WHERE name = 'Les Ateliers Verts'),
+        'Fox'),
+
+    ('Éléphantastique',
+        (SELECT id FROM brands WHERE name = 'Peluche Bio'),
+        (SELECT id FROM distributors WHERE name = 'Doudouland'),
+        (SELECT id FROM factories WHERE name = 'Les Ateliers Verts'),
+        'Elephant'),
+
+    ('Mollo le Paresseux',
+        (SELECT id FROM brands WHERE name = 'Peluche Bio'),
+        (SELECT id FROM distributors WHERE name = 'Le Comptoir des Peluches'),
+        (SELECT id FROM factories WHERE name = 'Atelier Coton Recyclé'),
+        'Sloth'),
+
+    ('Pandadou',
+        (SELECT id FROM brands WHERE name = 'Tendre Coton'),
+        (SELECT id FROM distributors WHERE name = 'Le Comptoir des Peluches'),
+        (SELECT id FROM factories WHERE name = 'Atelier Coton Recyclé'),
+        'Panda'),
+
+    ('Chouette Alors',
+        (SELECT id FROM brands WHERE name = 'Tendre Coton'),
+        (SELECT id FROM distributors WHERE name = 'Au Royaume du Doudou'),
+        (SELECT id FROM factories WHERE name = 'Atelier Coton Doux'),
+        'Owl'),
+
+    ('Lainou le Mouton',
+        (SELECT id FROM brands WHERE name = 'Nounours Nature'),
+        (SELECT id FROM distributors WHERE name = 'Peluches de France'),
+        (SELECT id FROM factories WHERE name = 'Atelier Laine & Nature'),
+        'Sheep'),
+
+    ('Hippo Dodu',
+        (SELECT id FROM brands WHERE name = 'Nounours Nature'),
+        (SELECT id FROM distributors WHERE name = 'La Caverne aux Peluches'),
+        (SELECT id FROM factories WHERE name = 'Manufacture du Câlin'),
+        'Hippo'),
+
+    ('Pingouin Glaçon',
+        (SELECT id FROM brands WHERE name = 'La Fabrique à Câlins'),
+        (SELECT id FROM distributors WHERE name = 'La Maison du Câlin'),
+        (SELECT id FROM factories WHERE name = 'Manufacture Douce de Wallonie'),
+        'Penguin'),
+
+    ('Coucou la Girafe',
+        (SELECT id FROM brands WHERE name = 'La Fabrique à Câlins'),
+        (SELECT id FROM distributors WHERE name = 'Tendresse & Cie'),
+        (SELECT id FROM factories WHERE name = 'La Filature Solidaire'),
+        'Giraffe'),
+
+    ('Requin Câlin',
+        (SELECT id FROM brands WHERE name = 'Mistoufle'),
+        (SELECT id FROM distributors WHERE name = 'La Maison du Câlin'),
+        (SELECT id FROM factories WHERE name = 'Manufacture Douce de Wallonie'),
+        'Shark'),
+
+    ('Pieuvre à Huit Bisous',
+        (SELECT id FROM brands WHERE name = 'Mistoufle'),
+        (SELECT id FROM distributors WHERE name = 'La Caverne aux Peluches'),
+        (SELECT id FROM factories WHERE name = 'Manufacture du Câlin'),
+        'Octopus'),
+
+    ('Koalou',
+        (SELECT id FROM brands WHERE name = 'Coton & Tendresse'),
+        (SELECT id FROM distributors WHERE name = 'Peluches de France'),
+        (SELECT id FROM factories WHERE name = 'Atelier Laine & Nature'),
+        'Koala'),
+
+    ('Noisette Câline',
+        (SELECT id FROM brands WHERE name = 'Coton & Tendresse'),
+        (SELECT id FROM distributors WHERE name = 'Au Royaume du Doudou'),
+        (SELECT id FROM factories WHERE name = 'Atelier Coton Doux'),
+        'Squirrel'),
+
+    ('Dino Doudou',
+        (SELECT id FROM brands WHERE name = 'Petite Laine'),
+        (SELECT id FROM distributors WHERE name = 'Doudouland'),
+        (SELECT id FROM factories WHERE name = 'Les Ateliers Verts'),
+        'Dinosaur'),
+
+    ('Étincelle la Licorne',
+        (SELECT id FROM brands WHERE name = 'Petite Laine'),
+        (SELECT id FROM distributors WHERE name = 'Tendresse & Cie'),
+        (SELECT id FROM factories WHERE name = 'La Filature Solidaire'),
+        'Unicorn'),
+
+    ('Pikou le Hérisson',
+        (SELECT id FROM brands WHERE name = 'Doudou Vert'),
+        (SELECT id FROM distributors WHERE name = 'Le Comptoir des Peluches'),
+        (SELECT id FROM factories WHERE name = 'Atelier Coton Recyclé'),
+        'Hedgehog'),
+
+    ('Loup-Câlin',
+        (SELECT id FROM brands WHERE name = 'Doudou Vert'),
+        (SELECT id FROM distributors WHERE name = 'Câlinou Boutique'),
+        (SELECT id FROM factories WHERE name = 'Fabrique Éthique du Doudou'),
+        'Wolf'),
+
+    ('Plouf le Dauphin',
+        (SELECT id FROM brands WHERE name = 'Atelier du Câlin'),
+        (SELECT id FROM distributors WHERE name = 'La Maison du Câlin'),
+        (SELECT id FROM factories WHERE name = 'Manufacture Douce de Wallonie'),
+        'Dolphin'),
+
+    ('Axolotl Rigolo',
+        (SELECT id FROM brands WHERE name = 'Atelier du Câlin'),
+        (SELECT id FROM distributors WHERE name = 'Peluches de France'),
+        (SELECT id FROM factories WHERE name = 'Atelier Laine & Nature'),
+        'Axolotl'),
+
+    ('Tortue Tout Doux',
+        (SELECT id FROM brands WHERE name = 'Bichon & Bouille'),
+        (SELECT id FROM distributors WHERE name = 'Tendresse & Cie'),
+        (SELECT id FROM factories WHERE name = 'La Filature Solidaire'),
+        'Turtle'),
+
+    ('Roux-Roux le Panda',
+        (SELECT id FROM brands WHERE name = 'Bichon & Bouille'),
+        (SELECT id FROM distributors WHERE name = 'Câlinou Boutique'),
+        (SELECT id FROM factories WHERE name = 'Fabrique Éthique du Doudou'),
+        'RedPanda');

@@ -1,11 +1,6 @@
 package edu.sorbonne.mimo.bondoudou.entities;
 
-/**
- * Type of creature a Bondoudou plushie represents.
- * Used as the category of a {@link Plushie}.
- */
 public enum AnimalCategory {
-    // Classic companions
     Bear,
     Rabbit,
     Cat,
@@ -18,8 +13,6 @@ public enum AnimalCategory {
     Deer,
     Sheep,
     Horse,
-
-    // Wild / savanna
     Elephant,
     Lion,
     Tiger,
@@ -30,13 +23,9 @@ public enum AnimalCategory {
     Panda,
     RedPanda,
     Koala,
-
-    // Birds
     Penguin,
     Owl,
     Duck,
-
-    // Aquatic
     Frog,
     Turtle,
     Dolphin,
@@ -44,8 +33,6 @@ public enum AnimalCategory {
     Shark,
     Octopus,
     Axolotl,
-
-    // Fantasy
     Unicorn,
     Dragon,
     Dinosaur
