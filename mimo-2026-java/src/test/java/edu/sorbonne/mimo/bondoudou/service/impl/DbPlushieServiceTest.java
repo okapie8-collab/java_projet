@@ -37,14 +37,11 @@ class DbPlushieServiceTest {
     @InjectMocks
     private DbPlushieService plushieService;
 
-    // Common test entities
-    private final BrandEntity brand = new BrandEntity("J.K. Rowling", "UK", 1997);
-    private final DistributorEntity distributor = new DistributorEntity("Gallimard", "France");
-    private final FactoryEntity factory = new FactoryEntity("Sorbonne Plush Works", "France", 120, distributor);
-    private final PlushieEntity plushieEntity = new PlushieEntity("Harry Potter",
+    private final BrandEntity brand = new BrandEntity("Câlin & Compagnie", "France", 1998);
+    private final DistributorEntity distributor = new DistributorEntity("Au Royaume du Doudou", "France");
+    private final FactoryEntity factory = new FactoryEntity("Atelier Coton Doux", "France", 80, distributor);
+    private final PlushieEntity plushieEntity = new PlushieEntity("Câlinours",
             brand, distributor, factory, "Bear");
-
-    // ----------------- findAll -----------------
 
     @Test
     void findAll_WithNoBrandName_Returns_NoPlushies_If_Repo_Empty() {
@@ -58,7 +55,7 @@ class DbPlushieServiceTest {
         when(plushieRepository.findAll()).thenReturn(List.of(plushieEntity));
         List<Plushie> plushies = plushieService.findAll(null);
         assertEquals(1, plushies.size());
-        assertEquals("Harry Potter", plushies.getFirst().name());
+        assertEquals("Câlinours", plushies.getFirst().name());
     }
 
     @Test
@@ -70,15 +67,13 @@ class DbPlushieServiceTest {
 
     @Test
     void findAll_WithBrandName_FiltersByBrand() {
-        when(plushieRepository.findByBrand_Name("J.K. Rowling"))
+        when(plushieRepository.findByBrand_Name("Câlin & Compagnie"))
                 .thenReturn(List.of(plushieEntity));
-        List<Plushie> plushies = plushieService.findAll("J.K. Rowling");
+        List<Plushie> plushies = plushieService.findAll("Câlin & Compagnie");
         assertEquals(1, plushies.size());
-        assertEquals("J.K. Rowling", plushies.getFirst().brandName());
-        assertEquals("Sorbonne Plush Works", plushies.getFirst().factoryName());
+        assertEquals("Câlin & Compagnie", plushies.getFirst().brandName());
+        assertEquals("Atelier Coton Doux", plushies.getFirst().factoryName());
     }
-
-    // ----------------- findById -----------------
 
     @Test
     void findById_Found_ReturnsPlushie() {
@@ -86,8 +81,8 @@ class DbPlushieServiceTest {
                 .thenReturn(Optional.of(plushieEntity));
         Optional<Plushie> result = plushieService.findById(1L);
         assertTrue(result.isPresent());
-        assertEquals("Harry Potter", result.get().name());
-        assertEquals("Sorbonne Plush Works", result.get().factoryName());
+        assertEquals("Câlinours", result.get().name());
+        assertEquals("Atelier Coton Doux", result.get().factoryName());
     }
 
     @Test
@@ -98,8 +93,6 @@ class DbPlushieServiceTest {
         assertTrue(result.isEmpty());
     }
 
-    // ----------------- findByCategory -----------------
-
     @Test
     void findByCategory_ReturnsMatchingPlushies() {
         when(plushieRepository.findByPlushieCategory("Bear"))
@@ -108,96 +101,92 @@ class DbPlushieServiceTest {
         assertEquals(1, plushies.size());
     }
 
-    // ----------------- create -----------------
-
     @Test
     void create_Success_FlushesAndReturns() {
-        // Arrange
-        Plushie plushie = new Plushie(null, "Name", "J.K. Rowling", "Gallimard", "Sorbonne Plush Works", AnimalCategory.Bear);
-        when(brandRepository.findByName("J.K. Rowling"))
+        Plushie plushie = new Plushie(null, "Câlinours", "Câlin & Compagnie",
+                "Au Royaume du Doudou", "Atelier Coton Doux", AnimalCategory.Bear);
+        when(brandRepository.findByName("Câlin & Compagnie"))
                 .thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("Gallimard"))
+        when(distributorRepository.findByName("Au Royaume du Doudou"))
                 .thenReturn(Optional.of(distributor));
-        when(factoryRepository.findByName("Sorbonne Plush Works"))
+        when(factoryRepository.findByName("Atelier Coton Doux"))
                 .thenReturn(Optional.of(factory));
         when(plushieRepository.saveAndFlush(any())).thenReturn(plushieEntity);
 
         plushieService.create(plushie);
         verify(plushieRepository).saveAndFlush(any(PlushieEntity.class));
-        // No exception = success
     }
 
     @Test
     void create_BrandNotFound_Throws() {
-        Plushie plushie = new Plushie(null, "Name", "Unknown", "Gallimard", "Sorbonne Plush Works", AnimalCategory.Bear);
-        when(brandRepository.findByName("Unknown")).thenReturn(Optional.empty());
+        Plushie plushie = new Plushie(null, "Câlinours", "Marque Inconnue",
+                "Au Royaume du Doudou", "Atelier Coton Doux", AnimalCategory.Bear);
+        when(brandRepository.findByName("Marque Inconnue")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> plushieService.create(plushie));
         verify(plushieRepository, never()).saveAndFlush(any());
     }
 
     @Test
     void create_DistributorNotFound_Throws() {
-        Plushie plushie = new Plushie(null, "Name", "J.K. Rowling", "UnknownPub", "Sorbonne Plush Works", AnimalCategory.Bear);
-        when(brandRepository.findByName("J.K. Rowling"))
+        Plushie plushie = new Plushie(null, "Câlinours", "Câlin & Compagnie",
+                "Distributeur Inconnu", "Atelier Coton Doux", AnimalCategory.Bear);
+        when(brandRepository.findByName("Câlin & Compagnie"))
                 .thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("UnknownPub")).thenReturn(Optional.empty());
+        when(distributorRepository.findByName("Distributeur Inconnu")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> plushieService.create(plushie));
         verify(plushieRepository, never()).saveAndFlush(any());
     }
 
     @Test
     void create_FactoryNotFound_Throws() {
-        Plushie plushie = new Plushie(null, "Name", "J.K. Rowling", "Gallimard", "UnknownFactory", AnimalCategory.Bear);
-        when(brandRepository.findByName("J.K. Rowling"))
+        Plushie plushie = new Plushie(null, "Câlinours", "Câlin & Compagnie",
+                "Au Royaume du Doudou", "Usine Inconnue", AnimalCategory.Bear);
+        when(brandRepository.findByName("Câlin & Compagnie"))
                 .thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("Gallimard"))
+        when(distributorRepository.findByName("Au Royaume du Doudou"))
                 .thenReturn(Optional.of(distributor));
-        when(factoryRepository.findByName("UnknownFactory")).thenReturn(Optional.empty());
+        when(factoryRepository.findByName("Usine Inconnue")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> plushieService.create(plushie));
         verify(plushieRepository, never()).saveAndFlush(any());
     }
 
     @Test
     void create_FactoryNotOperatedByDistributor_Throws() {
-        // le cas où l'attribut factoryName déclaré par une plushie est associé à un distributeur différent de celui déclaré dans la plushie
-        Plushie plushie = new Plushie(null, "SuperDoudou", "BestTeddyBears", "MegaPlush Inc.", "L'usine de Charleville Meziere", AnimalCategory.Bear);
-        when(brandRepository.findByName("BestTeddyBears"))
+        Plushie plushie = new Plushie(null, "Loup-Câlin", "Doudou Vert",
+                "Câlinou Boutique", "Atelier Coton Doux", AnimalCategory.Bear);
+        when(brandRepository.findByName("Doudou Vert"))
                 .thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("MegaPlush Inc."))
-                .thenReturn(Optional.of(new DistributorEntity("MegaPlush Inc.", "France")));
-        when(factoryRepository.findByName("L'usine de Charleville Meziere"))
+        when(distributorRepository.findByName("Câlinou Boutique"))
+                .thenReturn(Optional.of(new DistributorEntity("Câlinou Boutique", "France")));
+        when(factoryRepository.findByName("Atelier Coton Doux"))
                 .thenReturn(Optional.of(factory));
         assertThrows(IllegalArgumentException.class, () -> plushieService.create(plushie));
         verify(plushieRepository, never()).saveAndFlush(any());
     }
 
-    // ---------- update ----------
-
     @Test
     void update_ExistingPlushie_Success() {
-        // Arrange
         Long id = 1L;
-        Plushie updatedPlushie = new Plushie(id, "New Name", "J.K. Rowling", "Flammarion", "Sorbonne Plush Works", AnimalCategory.Bear);
-        BrandEntity newBrand = new BrandEntity("J.K. Rowling", "UK", 1997);
-        DistributorEntity newDistributor = new DistributorEntity("Flammarion", "France");
-        FactoryEntity newFactory = new FactoryEntity("Sorbonne Plush Works", "France", 120, newDistributor);
+        Plushie updatedPlushie = new Plushie(id, "Câlinours Géant", "Câlin & Compagnie",
+                "Câlinou Boutique", "Fabrique Éthique du Doudou", AnimalCategory.Rabbit);
+        BrandEntity newBrand = new BrandEntity("Câlin & Compagnie", "France", 1998);
+        DistributorEntity newDistributor = new DistributorEntity("Câlinou Boutique", "France");
+        FactoryEntity newFactory = new FactoryEntity("Fabrique Éthique du Doudou", "France", 45, newDistributor);
 
         when(plushieRepository.findById(id)).thenReturn(Optional.of(plushieEntity));
-        when(brandRepository.findByName("J.K. Rowling")).thenReturn(Optional.of(newBrand));
-        when(distributorRepository.findByName("Flammarion")).thenReturn(Optional.of(newDistributor));
-        when(factoryRepository.findByName("Sorbonne Plush Works")).thenReturn(Optional.of(newFactory));
+        when(brandRepository.findByName("Câlin & Compagnie")).thenReturn(Optional.of(newBrand));
+        when(distributorRepository.findByName("Câlinou Boutique")).thenReturn(Optional.of(newDistributor));
+        when(factoryRepository.findByName("Fabrique Éthique du Doudou")).thenReturn(Optional.of(newFactory));
         when(plushieRepository.saveAndFlush(any(PlushieEntity.class))).thenReturn(plushieEntity);
 
-        // Act
         Plushie result = plushieService.update(id, updatedPlushie);
 
-        // Assert
         assertNotNull(result);
-        assertEquals("New Name", result.name());
-        assertEquals("J.K. Rowling", result.brandName());
-        assertEquals("Flammarion", result.distributorName());
-        assertEquals("Sorbonne Plush Works", result.factoryName());
-        assertEquals(AnimalCategory.Bear, result.plushieCategory());
+        assertEquals("Câlinours Géant", result.name());
+        assertEquals("Câlin & Compagnie", result.brandName());
+        assertEquals("Câlinou Boutique", result.distributorName());
+        assertEquals("Fabrique Éthique du Doudou", result.factoryName());
+        assertEquals(AnimalCategory.Rabbit, result.plushieCategory());
         verify(plushieRepository).saveAndFlush(plushieEntity);
     }
 
@@ -205,7 +194,8 @@ class DbPlushieServiceTest {
     void update_PlushieNotFound_Throws() {
         Long id = 99L;
         when(plushieRepository.findById(id)).thenReturn(Optional.empty());
-        Plushie updatedPlushie = new Plushie(id, "Name", "Brand", "Distributor", "Factory", AnimalCategory.Bear);
+        Plushie updatedPlushie = new Plushie(id, "Câlinours", "Câlin & Compagnie",
+                "Au Royaume du Doudou", "Atelier Coton Doux", AnimalCategory.Bear);
         assertThrows(IllegalArgumentException.class,
                 () -> plushieService.update(id, updatedPlushie));
         verify(plushieRepository, never()).saveAndFlush(any());
@@ -214,9 +204,10 @@ class DbPlushieServiceTest {
     @Test
     void update_BrandNotFound_Throws() {
         Long id = 1L;
-        Plushie updatedPlushie = new Plushie(id, "Name", "Unknown Brand", "Distributor", "Factory", AnimalCategory.Bear);
+        Plushie updatedPlushie = new Plushie(id, "Câlinours", "Marque Inconnue",
+                "Au Royaume du Doudou", "Atelier Coton Doux", AnimalCategory.Bear);
         when(plushieRepository.findById(id)).thenReturn(Optional.of(plushieEntity));
-        when(brandRepository.findByName("Unknown Brand")).thenReturn(Optional.empty());
+        when(brandRepository.findByName("Marque Inconnue")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
                 () -> plushieService.update(id, updatedPlushie));
         verify(plushieRepository, never()).saveAndFlush(any());
@@ -225,10 +216,11 @@ class DbPlushieServiceTest {
     @Test
     void update_DistributorNotFound_Throws() {
         Long id = 1L;
-        Plushie updatedPlushie = new Plushie(id, "Name", "J.K. Rowling", "Unknown Distributor", "Factory", AnimalCategory.Bear);
+        Plushie updatedPlushie = new Plushie(id, "Câlinours", "Câlin & Compagnie",
+                "Distributeur Inconnu", "Atelier Coton Doux", AnimalCategory.Bear);
         when(plushieRepository.findById(id)).thenReturn(Optional.of(plushieEntity));
-        when(brandRepository.findByName("J.K. Rowling")).thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("Unknown Distributor")).thenReturn(Optional.empty());
+        when(brandRepository.findByName("Câlin & Compagnie")).thenReturn(Optional.of(brand));
+        when(distributorRepository.findByName("Distributeur Inconnu")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
                 () -> plushieService.update(id, updatedPlushie));
         verify(plushieRepository, never()).saveAndFlush(any());
@@ -237,11 +229,12 @@ class DbPlushieServiceTest {
     @Test
     void update_FactoryNotFound_Throws() {
         Long id = 1L;
-        Plushie updatedPlushie = new Plushie(id, "Name", "J.K. Rowling", "Gallimard", "Unknown Factory", AnimalCategory.Bear);
+        Plushie updatedPlushie = new Plushie(id, "Câlinours", "Câlin & Compagnie",
+                "Au Royaume du Doudou", "Usine Inconnue", AnimalCategory.Bear);
         when(plushieRepository.findById(id)).thenReturn(Optional.of(plushieEntity));
-        when(brandRepository.findByName("J.K. Rowling")).thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("Gallimard")).thenReturn(Optional.of(distributor));
-        when(factoryRepository.findByName("Unknown Factory")).thenReturn(Optional.empty());
+        when(brandRepository.findByName("Câlin & Compagnie")).thenReturn(Optional.of(brand));
+        when(distributorRepository.findByName("Au Royaume du Doudou")).thenReturn(Optional.of(distributor));
+        when(factoryRepository.findByName("Usine Inconnue")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
                 () -> plushieService.update(id, updatedPlushie));
         verify(plushieRepository, never()).saveAndFlush(any());
@@ -250,13 +243,13 @@ class DbPlushieServiceTest {
     @Test
     void update_FactoryNotOperatedByDistributor_Throws() {
         Long id = 1L;
-        // on teste que la factory de plushie est rattachée au même distributeur que celui déclaré par plushie
-        Plushie updatedPlushie = new Plushie(id, "SuperPeluche", "InsanePlushies", "IncredibleDistrib SA", "UsineTrebuzaux", AnimalCategory.Bear);
+        Plushie updatedPlushie = new Plushie(id, "Loup-Câlin", "Doudou Vert",
+                "Câlinou Boutique", "Atelier Coton Doux", AnimalCategory.Bear);
         when(plushieRepository.findById(id)).thenReturn(Optional.of(plushieEntity));
-        when(brandRepository.findByName("InsanePlushies")).thenReturn(Optional.of(brand));
-        when(distributorRepository.findByName("IncredibleDistrib SA"))
-                .thenReturn(Optional.of(new DistributorEntity("IncredibleDistrib SA", "France")));
-        when(factoryRepository.findByName("UsineTrebuzeaux")).thenReturn(Optional.of(factory));
+        when(brandRepository.findByName("Doudou Vert")).thenReturn(Optional.of(brand));
+        when(distributorRepository.findByName("Câlinou Boutique"))
+                .thenReturn(Optional.of(new DistributorEntity("Câlinou Boutique", "France")));
+        when(factoryRepository.findByName("Atelier Coton Doux")).thenReturn(Optional.of(factory));
         assertThrows(IllegalArgumentException.class,
                 () -> plushieService.update(id, updatedPlushie));
         verify(plushieRepository, never()).saveAndFlush(any());
@@ -264,13 +257,11 @@ class DbPlushieServiceTest {
 
     @Test
     void update_NullCategory_throws_Exception() {
-        // Testing when category is null – should store null as string
         Long id = 1L;
-        Plushie updatedPlushie = new Plushie(id, "Name", "J.K. Rowling", "Gallimard", "Sorbonne Plush Works", null);
+        Plushie updatedPlushie = new Plushie(id, "Câlinours", "Câlin & Compagnie",
+                "Au Royaume du Doudou", "Atelier Coton Doux", null);
         assertThrows(IllegalArgumentException.class, () -> plushieService.update(id, updatedPlushie));
     }
-
-    // ---------- deleteById ----------
 
     @Test
     void deleteById_ExistingPlushie_ReturnsTrue() {

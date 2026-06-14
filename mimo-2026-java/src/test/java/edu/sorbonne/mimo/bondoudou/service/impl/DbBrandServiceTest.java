@@ -35,43 +35,39 @@ class DbBrandServiceTest {
     @InjectMocks
     private DbBrandService brandService;
 
-    private final BrandEntity rowling = new BrandEntity("J.K. Rowling", "UK", 1997);
-    private final DistributorEntity gallimard = new DistributorEntity("Gallimard", "France");
-    private final FactoryEntity sorbonne = new FactoryEntity("Sorbonne Plush Works", "France", 120, gallimard);
-    private final PlushieEntity plushieEntity = new PlushieEntity("Harry Potter",
-            rowling, gallimard, sorbonne, "Fiction");
-
-    // ----------------- create -----------------
+    private final BrandEntity calinCie = new BrandEntity("Câlin & Compagnie", "France", 1998);
+    private final DistributorEntity auRoyaume = new DistributorEntity("Au Royaume du Doudou", "France");
+    private final FactoryEntity cotonDoux = new FactoryEntity("Atelier Coton Doux", "France", 80, auRoyaume);
+    private final PlushieEntity plushieEntity = new PlushieEntity("Câlinours",
+            calinCie, auRoyaume, cotonDoux, "Bear");
 
     @Test
     void create_NewBrand_Success() {
-        BrandWriteRequest request = new BrandWriteRequest("New Brand", "USA", 2010);
-        when(brandRepository.findByName("New Brand")).thenReturn(Optional.empty());
+        BrandWriteRequest request = new BrandWriteRequest("Nounours Nature", "France", 2009);
+        when(brandRepository.findByName("Nounours Nature")).thenReturn(Optional.empty());
         when(brandRepository.saveAndFlush(any())).thenReturn(
-                new BrandEntity("New Brand", "USA", 2010));
+                new BrandEntity("Nounours Nature", "France", 2009));
 
         Brand result = brandService.create(request);
-        assertEquals("New Brand", result.name());
+        assertEquals("Nounours Nature", result.name());
         verify(brandRepository).saveAndFlush(any(BrandEntity.class));
     }
 
     @Test
     void create_DuplicateName_Throws() {
-        when(brandRepository.findByName("J.K. Rowling"))
-                .thenReturn(Optional.of(rowling));
-        BrandWriteRequest request = new BrandWriteRequest("J.K. Rowling", "UK", 1997);
+        when(brandRepository.findByName("Câlin & Compagnie"))
+                .thenReturn(Optional.of(calinCie));
+        BrandWriteRequest request = new BrandWriteRequest("Câlin & Compagnie", "France", 1998);
         assertThrows(IllegalArgumentException.class, () -> brandService.create(request));
         verify(brandRepository, never()).saveAndFlush(any());
     }
 
-    // ----------------- findById -----------------
-
     @Test
     void findById_Found_ReturnsBrand() {
-        when(brandRepository.findById(1L)).thenReturn(Optional.of(rowling));
+        when(brandRepository.findById(1L)).thenReturn(Optional.of(calinCie));
         Optional<Brand> result = brandService.findById(1L);
         assertTrue(result.isPresent());
-        assertEquals("J.K. Rowling", result.get().name());
+        assertEquals("Câlin & Compagnie", result.get().name());
     }
 
     @Test
@@ -80,24 +76,20 @@ class DbBrandServiceTest {
         assertTrue(brandService.findById(99L).isEmpty());
     }
 
-    // ----------------- findAll -----------------
-
     @Test
     void findAll_ReturnsAllBrands() {
-        when(brandRepository.findAll()).thenReturn(List.of(rowling));
+        when(brandRepository.findAll()).thenReturn(List.of(calinCie));
         List<Brand> brands = brandService.findAll();
         assertEquals(1, brands.size());
     }
 
-    // ----------------- update -----------------
-
     @Test
     void update_ExistingBrand_Success() {
-        when(brandRepository.findById(1L)).thenReturn(Optional.of(rowling));
-        when(brandRepository.saveAndFlush(any())).thenReturn(rowling);
-        BrandWriteRequest request = new BrandWriteRequest("J.K. Rowling", "France", 2001);
+        when(brandRepository.findById(1L)).thenReturn(Optional.of(calinCie));
+        when(brandRepository.saveAndFlush(any())).thenReturn(calinCie);
+        BrandWriteRequest request = new BrandWriteRequest("Câlin & Compagnie", "Belgique", 2001);
         Brand updated = brandService.update(1L, request);
-        assertEquals("France", updated.country());
+        assertEquals("Belgique", updated.country());
         assertEquals(2001, updated.foundedYear());
     }
 
@@ -105,15 +97,13 @@ class DbBrandServiceTest {
     void update_NotFound_Throws() {
         when(brandRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
-                () -> brandService.update(99L, new BrandWriteRequest("n", "c", 0)));
+                () -> brandService.update(99L, new BrandWriteRequest("Marque Inconnue", "France", 0)));
     }
-
-    // ----------------- delete -----------------
 
     @Test
     void deleteById_Exists_with_plushies_deletes_plushies_and_ReturnsTrue() {
-        when(brandRepository.findById(1L)).thenReturn(Optional.of(rowling));
-        when(plushieRepository.findByBrand_Name("J.K. Rowling")).thenReturn(List.of(plushieEntity));
+        when(brandRepository.findById(1L)).thenReturn(Optional.of(calinCie));
+        when(plushieRepository.findByBrand_Name("Câlin & Compagnie")).thenReturn(List.of(plushieEntity));
 
         assertTrue(brandService.deleteById(1L));
 
@@ -128,25 +118,22 @@ class DbBrandServiceTest {
         verify(plushieRepository, never()).deleteAll(any());
     }
 
-    // ----------------- findDistributorsByBrandName -----------------
-
     @Test
     void findDistributorsByBrandName_BrandExists_ReturnsDistributors() {
-        when(distributorRepository.findDistinctByBrandName("J.K. Rowling"))
-                .thenReturn(List.of(gallimard));
+        when(distributorRepository.findDistinctByBrandName("Câlin & Compagnie"))
+                .thenReturn(List.of(auRoyaume));
 
-        List<Distributor> result = brandService.findDistributorsByBrandName("J.K. Rowling");
+        List<Distributor> result = brandService.findDistributorsByBrandName("Câlin & Compagnie");
         assertEquals(1, result.size());
-        assertEquals("Gallimard", result.getFirst().name());
+        assertEquals("Au Royaume du Doudou", result.getFirst().name());
     }
 
     @Test
     void findDistributorsByBrandName_BrandNotFound_ReturnsEmptyList() {
-        when(distributorRepository.findDistinctByBrandName("Unknown"))
+        when(distributorRepository.findDistinctByBrandName("Marque Inconnue"))
                 .thenReturn(List.of());
 
-        List<Distributor> result = brandService.findDistributorsByBrandName("Unknown");
+        List<Distributor> result = brandService.findDistributorsByBrandName("Marque Inconnue");
         assertTrue(result.isEmpty());
     }
-
 }

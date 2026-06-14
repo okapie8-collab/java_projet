@@ -33,54 +33,50 @@ class DbFactoryServiceTest {
     @InjectMocks
     private DbFactoryService factoryService;
 
-    private final DistributorEntity gallimard = new DistributorEntity("Gallimard", "France");
-    private final FactoryEntity acme =
-            new FactoryEntity("Acme Plush", "France", 100, gallimard);
-
-    // ----------------- create -----------------
+    private final DistributorEntity auRoyaume = new DistributorEntity("Au Royaume du Doudou", "France");
+    private final FactoryEntity cotonDoux =
+            new FactoryEntity("Atelier Coton Doux", "France", 80, auRoyaume);
 
     @Test
     void create_NewFactory_Success() {
-        FactoryWriteRequest request = new FactoryWriteRequest("NewFactory", "UK", 50, "Gallimard");
-        when(factoryRepository.findByName("NewFactory")).thenReturn(Optional.empty());
-        when(distributorRepository.findByName("Gallimard")).thenReturn(Optional.of(gallimard));
+        FactoryWriteRequest request = new FactoryWriteRequest("Les Ateliers Verts", "France", 60, "Au Royaume du Doudou");
+        when(factoryRepository.findByName("Les Ateliers Verts")).thenReturn(Optional.empty());
+        when(distributorRepository.findByName("Au Royaume du Doudou")).thenReturn(Optional.of(auRoyaume));
         when(factoryRepository.saveAndFlush(any())).thenReturn(
-                new FactoryEntity("NewFactory", "UK", 50, gallimard));
+                new FactoryEntity("Les Ateliers Verts", "France", 60, auRoyaume));
         Factory result = factoryService.create(request);
-        assertEquals("NewFactory", result.name());
-        assertEquals(50, result.numberOfEmployees());
-        assertEquals("Gallimard", result.distributorName());
+        assertEquals("Les Ateliers Verts", result.name());
+        assertEquals(60, result.numberOfEmployees());
+        assertEquals("Au Royaume du Doudou", result.distributorName());
         verify(factoryRepository).saveAndFlush(any());
     }
 
     @Test
     void create_Duplicate_Throws() {
-        when(factoryRepository.findByName("Acme Plush"))
-                .thenReturn(Optional.of(acme));
-        FactoryWriteRequest request = new FactoryWriteRequest("Acme Plush", "France", 100, "Gallimard");
+        when(factoryRepository.findByName("Atelier Coton Doux"))
+                .thenReturn(Optional.of(cotonDoux));
+        FactoryWriteRequest request = new FactoryWriteRequest("Atelier Coton Doux", "France", 80, "Au Royaume du Doudou");
         assertThrows(IllegalArgumentException.class, () -> factoryService.create(request));
         verify(factoryRepository, never()).saveAndFlush(any());
     }
 
     @Test
     void create_DistributorNotFound_Throws() {
-        FactoryWriteRequest request = new FactoryWriteRequest("NewFactory", "UK", 50, "Unknown");
-        when(factoryRepository.findByName("NewFactory")).thenReturn(Optional.empty());
-        when(distributorRepository.findByName("Unknown")).thenReturn(Optional.empty());
+        FactoryWriteRequest request = new FactoryWriteRequest("Les Ateliers Verts", "France", 60, "Distributeur Inconnu");
+        when(factoryRepository.findByName("Les Ateliers Verts")).thenReturn(Optional.empty());
+        when(distributorRepository.findByName("Distributeur Inconnu")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> factoryService.create(request));
         verify(factoryRepository, never()).saveAndFlush(any());
     }
 
-    // ----------------- findById -----------------
-
     @Test
     void findById_Found_ReturnsFactory() {
-        acme.setId(1L);
-        when(factoryRepository.findById(1L)).thenReturn(Optional.of(acme));
+        cotonDoux.setId(1L);
+        when(factoryRepository.findById(1L)).thenReturn(Optional.of(cotonDoux));
         Optional<Factory> result = factoryService.findById(1L);
         assertTrue(result.isPresent());
-        assertEquals("Acme Plush", result.get().name());
-        assertEquals("Gallimard", result.get().distributorName());
+        assertEquals("Atelier Coton Doux", result.get().name());
+        assertEquals("Au Royaume du Doudou", result.get().distributorName());
     }
 
     @Test
@@ -89,67 +85,61 @@ class DbFactoryServiceTest {
         assertTrue(factoryService.findById(99L).isEmpty());
     }
 
-    // ----------------- findAll -----------------
-
     @Test
     void findAll_ReturnsAll() {
-        when(factoryRepository.findAll()).thenReturn(List.of(acme));
+        when(factoryRepository.findAll()).thenReturn(List.of(cotonDoux));
         List<Factory> list = factoryService.findAll();
         assertEquals(1, list.size());
     }
 
-    // ----------------- update -----------------
-
     @Test
     void update_Existing_Success() {
-        acme.setId(1L);
-        DistributorEntity penguin = new DistributorEntity("Penguin", "USA");
-        when(factoryRepository.findById(1L)).thenReturn(Optional.of(acme));
-        when(distributorRepository.findByName("Penguin")).thenReturn(Optional.of(penguin));
-        when(factoryRepository.saveAndFlush(any())).thenReturn(acme);
-        FactoryWriteRequest request = new FactoryWriteRequest("Acme Corp", "FR", 250, "Penguin");
+        cotonDoux.setId(1L);
+        DistributorEntity calinouBoutique = new DistributorEntity("Câlinou Boutique", "France");
+        when(factoryRepository.findById(1L)).thenReturn(Optional.of(cotonDoux));
+        when(distributorRepository.findByName("Câlinou Boutique")).thenReturn(Optional.of(calinouBoutique));
+        when(factoryRepository.saveAndFlush(any())).thenReturn(cotonDoux);
+        FactoryWriteRequest request = new FactoryWriteRequest("Atelier Coton Recyclé", "France", 70, "Câlinou Boutique");
         Factory updated = factoryService.update(1L, request);
-        assertEquals("Acme Corp", updated.name());
-        assertEquals("FR", updated.country());
-        assertEquals(250, updated.numberOfEmployees());
-        assertEquals("Penguin", updated.distributorName());
+        assertEquals("Atelier Coton Recyclé", updated.name());
+        assertEquals("France", updated.country());
+        assertEquals(70, updated.numberOfEmployees());
+        assertEquals("Câlinou Boutique", updated.distributorName());
     }
 
     @Test
     void update_NotFound_Throws() {
         when(factoryRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
-                () -> factoryService.update(99L, new FactoryWriteRequest("n", "c", 0, "Gallimard")));
+                () -> factoryService.update(99L, new FactoryWriteRequest("Usine Inconnue", "France", 0, "Au Royaume du Doudou")));
     }
 
     @Test
     void update_DistributorNotFound_Throws() {
-        acme.setId(1L);
-        when(factoryRepository.findById(1L)).thenReturn(Optional.of(acme));
-        when(distributorRepository.findByName("Unknown")).thenReturn(Optional.empty());
+        cotonDoux.setId(1L);
+        when(factoryRepository.findById(1L)).thenReturn(Optional.of(cotonDoux));
+        when(distributorRepository.findByName("Distributeur Inconnu")).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
-                () -> factoryService.update(1L, new FactoryWriteRequest("Acme", "FR", 10, "Unknown")));
+                () -> factoryService.update(1L, new FactoryWriteRequest("Atelier Coton Doux", "France", 10, "Distributeur Inconnu")));
         verify(factoryRepository, never()).saveAndFlush(any());
     }
 
-    // ----------------- delete -----------------
-
     @Test
     void deleteById_Exists_with_no_plushies_ReturnsTrue() {
-        FactoryEntity berlin = new FactoryEntity("Berlin Soft Toys", "Germany", 85, gallimard);
-        berlin.setId(1L);
-        when(factoryRepository.findById(1L)).thenReturn(Optional.of(berlin));
-        when(plushieRepository.countByFactory_Name("Berlin Soft Toys")).thenReturn(0);
+        FactoryEntity sansPeluches = new FactoryEntity("Atelier Coton Recyclé", "France", 70, auRoyaume);
+        sansPeluches.setId(1L);
+        when(factoryRepository.findById(1L)).thenReturn(Optional.of(sansPeluches));
+        when(plushieRepository.countByFactory_Name("Atelier Coton Recyclé")).thenReturn(0);
         assertTrue(factoryService.deleteById(1L));
         verify(factoryRepository).deleteById(1L);
     }
 
     @Test
     void deleteById_Exists_with_plushies_Throws() {
-        FactoryEntity berlin = new FactoryEntity("Berlin Soft Toys", "Germany", 85, gallimard);
-        berlin.setId(1L);
-        when(factoryRepository.findById(1L)).thenReturn(Optional.of(berlin));
-        when(plushieRepository.countByFactory_Name("Berlin Soft Toys")).thenReturn(5);
+        FactoryEntity avecPeluches = new FactoryEntity("Manufacture du Câlin", "France", 150, auRoyaume);
+        avecPeluches.setId(1L);
+        when(factoryRepository.findById(1L)).thenReturn(Optional.of(avecPeluches));
+        when(plushieRepository.countByFactory_Name("Manufacture du Câlin")).thenReturn(5);
         assertThrows(IllegalArgumentException.class,
                 () -> factoryService.deleteById(1L));
         verify(factoryRepository, never()).deleteById(any());
